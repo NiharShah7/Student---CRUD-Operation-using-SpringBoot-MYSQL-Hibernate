@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.demo.service.Studentservice;
 import com.demo.studentRepository.StudentRepository;
 import com.demo.students.Students;
 
@@ -22,50 +23,44 @@ public class StudentController {
 
 	@Autowired
 	StudentRepository sr;
+	@Autowired
+	Studentservice studentService;
 
 	public StudentController() {
-		
+
 		System.out.println("In student controller.... 1");
 	}
 
-	// 1. Add method student in DataBase table 
+	// 1. Add method student in DataBase table
 	@PostMapping(value = "/student")
 	public Students addStudentInDB(@RequestBody Students std) {
 
 		System.out.println("In add student data method.. 2");
-		
-		Students savedStudent = sr.save(std);
-		
-		System.out.println("Saved data of student is :" + savedStudent);
-
-		return savedStudent;
+		Students receivedStudent = studentService.addStudent(std);
+		return receivedStudent;
 	}
 
-	// 2. Delete student data from dataBase. 
+	// 2. Delete student data from dataBase.
 	@DeleteMapping(value = "/student/{studentId}")
 	public Map deleteStudent(@PathVariable("studentId") int studentId) {
 		System.out.println("Delete  method.. 2");
-		
 		System.out.println("Received student Id to be deleted :" + studentId);
-		sr.deleteById(studentId);
-		
-		return	Map.of("status","deleted");
-	
 
+		int num = studentService.deleteStudent(studentId);
+		System.out.println("Returned num =" + num);
+		if (num == 1) {
+			return Map.of("status", "deleted");
+		} else {
+			return Map.of("status", "NO SUCH STUDENT FOUND");
+		}
 	}
 
 	// 3 . list of all data.
 	@GetMapping(value = "/student")
 	public List<Students> getAllStudents() {
 		System.out.println("List of students.. 3");
-		
-		List findAll = sr.findAll();
 
-		ListIterator<Students> itr = findAll.listIterator();
-
-		while (itr.hasNext()) {
-			System.out.println(itr.next());
-		}
+		List findAll = studentService.getAllstudents();
 		return findAll;
 	}
 
@@ -73,33 +68,23 @@ public class StudentController {
 	@PutMapping(value = "/student/{studentId}")
 	public Students updateStudent(@RequestBody Students newStudentData, @PathVariable("studentId") int studentId) {
 		System.out.println("Update student method..4");
-		
-		Students existingstudent = sr.findById(studentId).orElse(null);
 
-		if(existingstudent!=null) {
-			existingstudent.setStudentAge(newStudentData.getStudentAge());
-			existingstudent.setStudentName(newStudentData.getStudentName());
-			existingstudent.setGender(newStudentData.getGender());
-			existingstudent.setStudentPhoneNumber(newStudentData.getStudentPhoneNumber());
+		Students updatedStudent= studentService.updateStudent(newStudentData, studentId);	
+		System.out.println("Updated student : " + updatedStudent);
 
-			sr.save(existingstudent);
-		}
-	
-		System.out.println("Updated student : " + existingstudent);
-		
-		return existingstudent;
+		return updatedStudent;
 	}
 
-	// 5. To find a Single student from list. 
+	// 5. To find a Single student from list.
 	@GetMapping(value = "/student/{studentId}")
 	public Students findStudent(@PathVariable("studentId") int studentId) {
 		System.out.println("Find single student ..5");
-		
-		Students foundStudent = sr.findById(studentId).orElse(null);
-		
-		System.out.println("Student Data of id " + studentId + " : " + foundStudent);
 
-		return foundStudent;
+//		Students foundStudent = sr.findById(studentId).orElse(null);
+	Students receivedStudentData=studentService.findSingleStudent(studentId);
+	System.out.println("Student Data of id " + studentId + " : " + receivedStudentData);
+
+		return receivedStudentData;
 
 	}
 
